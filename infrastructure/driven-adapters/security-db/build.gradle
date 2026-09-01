@@ -1,0 +1,26 @@
+// ─────────────────────────────────────────────
+// Module name: security-db
+// Layer: Infrastructure / Driven Adapter (Database)
+// Responsibility:
+//  - PostgreSQL persistence with Spring Data R2DBC (reactive)
+//  - Entity <-> domain mapping (MapStruct)
+//  - Implements the repository gateway ports
+//  - Owns the Flyway migration scripts (db/migration)
+// ─────────────────────────────────────────────
+
+plugins {
+  id 'java'
+}
+
+dependencies {
+  implementation project(':model')
+  implementation project(':usecase')
+
+  implementation 'org.springframework.boot:spring-boot-starter-data-r2dbc'
+  implementation "org.postgresql:r2dbc-postgresql:${versions.r2dbcPostgres}"
+
+  // Flyway runs over a plain JDBC connection at startup (R2DBC cannot run migrations).
+  implementation "org.flywaydb:flyway-core:${versions.flyway}"
+  implementation "org.flywaydb:flyway-database-postgresql:${versions.flyway}"
+  runtimeOnly 'org.postgresql:postgresql'
+}

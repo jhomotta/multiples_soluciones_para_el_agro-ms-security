@@ -1,0 +1,129 @@
+# ─────────────────────────────────────────────
+# ms-security — .gitignore
+# Gradle multi-module · Java 25 · Spring Boot WebFlux · PostgreSQL
+# ─────────────────────────────────────────────
+
+# --- Gradle ---
+.gradle/
+build/
+!src/**/build/
+gradle-app.setting
+.gradletasknamecache
+# The wrapper JAR and properties MUST stay in Git: they let anyone build
+# the project without a pre-installed Gradle.
+!gradle/wrapper/gradle-wrapper.jar
+!gradle/wrapper/gradle-wrapper.properties
+
+# --- Build output (other tools) ---
+bin/
+out/
+target/
+!**/src/main/**/target/
+!**/src/test/**/target/
+
+# --- Java / JVM artifacts ---
+*.class
+*.jar
+!gradle/wrapper/gradle-wrapper.jar
+*.war
+*.ear
+*.nar
+*.zip
+*.tar
+*.tar.gz
+hs_err_pid*
+replay_pid*
+*.hprof
+.attach_pid*
+
+# --- Secrets and local configuration ---
+# The real .env never belongs in Git; .env.example is the tracked template.
+.env
+.env.*
+!.env.example
+*.local.yml
+*.local.yaml
+application-local.yml
+application-local.yaml
+application-local.properties
+secrets.properties
+# Keys and certificates
+*.pem
+*.key
+*.p12
+*.pfx
+*.jks
+*.keystore
+*.truststore
+
+# --- Tests / coverage reports ---
+**/build/reports/
+**/build/test-results/
+**/build/jacoco/
+*.exec
+.jacoco/
+coverage/
+
+# --- Logs ---
+*.log
+logs/
+**/build/logs/
+*.log.*
+
+# --- Containers / local data ---
+# Podman/Docker volumes are named in compose.yaml, but keep stray bind mounts out.
+pgdata/
+data/
+.docker/
+docker-compose.override.yml
+compose.override.yaml
+
+# --- IDEs: IntelliJ IDEA ---
+.idea/
+*.iml
+*.ipr
+*.iws
+out/
+
+# --- IDEs: Eclipse / STS ---
+.classpath
+.project
+.settings/
+.apt_generated/
+.factorypath
+.springBeans
+.sts4-cache/
+
+# --- IDEs: VS Code ---
+.vscode/
+!.vscode/settings.json
+!.vscode/extensions.json
+.history/
+
+# --- IDEs: NetBeans ---
+/nbproject/private/
+/nbbuild/
+/dist/
+/nbdist/
+/.nb-gradle/
+
+# --- OS noise ---
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+$RECYCLE.BIN/
+*~
+.nfs*
+
+# --- Editors / temp files ---
+*.swp
+*.swo
+*.bak
+*.tmp
+*.orig
+*.rej

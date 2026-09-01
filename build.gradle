@@ -1,0 +1,104 @@
+// ─────────────────────────────────────────────
+// Module name: root
+// Project: ms-security (multiples_soluciones_para_el_agro)
+// Responsibility:
+//  - Multi-module orchestration
+//  - Dependency management and version alignment
+//  - Plugin alignment
+//  - Java 25 toolchain for every subproject
+// ─────────────────────────────────────────────
+
+plugins {
+  id 'java'
+  id 'jacoco'
+  id 'io.spring.dependency-management' version '1.1.7'
+  id 'org.springframework.boot' version '3.5.0' apply false
+}
+
+ext.versions = [
+        springBoot     : '3.5.0',
+        springDepMgmt  : '1.1.7',
+        lombok         : '1.18.42',
+        mapstruct      : '1.6.3',
+        springdoc      : '2.8.6',
+        jjwt           : '0.12.6',
+        r2dbcPostgres  : '1.0.7.RELEASE',
+        flyway         : '11.7.2',
+        // BouncyCastle backs Spring Security's Argon2id password encoder.
+        bouncyCastle   : '1.80',
+]
+
+allprojects {
+  repositories {
+    mavenCentral()
+  }
+}
+
+subprojects {
+  apply plugin: 'java'
+  apply plugin: 'jacoco'
+  apply plugin: 'io.spring.dependency-management'
+
+  java {
+    // Hard requirement: build and run on Java 25.
+    toolchain {
+      languageVersion = JavaLanguageVersion.of(25)
+    }
+  }
+
+  configurations {
+    compileOnly {
+      extendsFrom annotationProcessor
+    }
+  }
+
+  dependencyManagement {
+    imports {
+      mavenBom "org.springframework.boot:spring-boot-dependencies:${versions.springBoot}"
+    }
+  }
+
+  dependencies {
+    // Lombok
+    compileOnly "org.projectlombok:lombok:${versions.lombok}"
+    annotationProcessor "org.projectlombok:lombok:${versions.lombok}"
+    testCompileOnly "org.projectlombok:lombok:${versions.lombok}"
+    testAnnotationProcessor "org.projectlombok:lombok:${versions.lombok}"
+
+    // MapStruct
+    implementation "org.mapstruct:mapstruct:${versions.mapstruct}"
+    annotationProcessor "org.mapstruct:mapstruct-processor:${versions.mapstruct}"
+    // Lombok + MapStruct must cooperate (order of annotation processors).
+    annotationProcessor "org.projectlombok:lombok-mapstruct-binding:0.2.0"
+
+    // Tests
+    testImplementation 'org.springframework.boot:spring-boot-starter-test'
+    testImplementation 'io.projectreactor:reactor-test'
+    testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+  }
+
+  tasks.withType(JavaCompile).configureEach {
+    // -parameters keeps the real parameter names in the bytecode. Spring reads them to bind
+    // @PathVariable / @RequestParam without repeating the name in the annotation; without it,
+    // every such binding fails at runtime. The Boot plugin adds this only to :app-service, and
+    // the controllers live in :reactive-web, so it is set for every module here.
+    options.compilerArgs += ['-parameters', '-Amapstruct.suppressGeneratorTimestamp=true']
+  }
+
+  tasks.named('test', Test) {
+    useJUnitPlatform()
+  }
+}
+
+// Apply the Spring Boot plugin ONLY to the runnable module.
+project(':app-service') {
+  apply plugin: 'org.springframework.boot'
+
+  springBoot {
+    mainClass = 'com.msagro.security.applications.MsSecurityApplication'
+  }
+
+  bootJar {
+    archiveFileName = 'ms-security.jar'
+  }
+}

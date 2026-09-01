@@ -1,0 +1,15 @@
+// ─────────────────────────────────────────────
+// Module name: utility
+// Layer: Infrastructure / Helper
+// Responsibility:
+//  - Shared constants and reusable technical helpers
+//  - Cross-cutting, framework-light utilities
+// ─────────────────────────────────────────────
+
+plugins {
+  id 'java'
+}
+
+dependencies {
+  implementation 'io.projectreactor:reactor-core'
+}

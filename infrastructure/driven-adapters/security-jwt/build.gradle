@@ -1,0 +1,30 @@
+// ─────────────────────────────────────────────
+// Module name: security-jwt
+// Layer: Infrastructure / Driven Adapter (Security)
+// Responsibility:
+//  - Issues and validates JWT access tokens (JJWT)
+//  - Argon2id password hashing through a DelegatingPasswordEncoder
+//  - SHA-256 token hashing and secure random token generation
+//  - Implements the security outbound ports
+// ─────────────────────────────────────────────
+
+plugins {
+  id 'java'
+}
+
+dependencies {
+  implementation project(':model')
+  implementation project(':usecase')
+
+  implementation 'io.projectreactor:reactor-core'
+  // Spring stereotypes (@Component) for the adapters.
+  implementation 'org.springframework:spring-context'
+  // Argon2PasswordEncoder / BCryptPasswordEncoder / DelegatingPasswordEncoder.
+  implementation 'org.springframework.security:spring-security-crypto'
+  // Argon2PasswordEncoder delegates to BouncyCastle's Argon2 implementation.
+  implementation "org.bouncycastle:bcprov-jdk18on:${versions.bouncyCastle}"
+
+  implementation "io.jsonwebtoken:jjwt-api:${versions.jjwt}"
+  runtimeOnly "io.jsonwebtoken:jjwt-impl:${versions.jjwt}"
+  runtimeOnly "io.jsonwebtoken:jjwt-jackson:${versions.jjwt}"
+}

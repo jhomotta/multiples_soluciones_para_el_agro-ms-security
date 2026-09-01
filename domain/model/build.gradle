@@ -1,0 +1,21 @@
+// ─────────────────────────────────────────────
+// Module name: model
+// Layer: Domain Model
+// Responsibility:
+//  - Domain entities and DTOs (Lombok)
+//  - Domain errors and enums
+//  - Generic response wrapper
+//  - Pure Java (no Spring web/persistence dependencies)
+// ─────────────────────────────────────────────
+
+plugins {
+  id 'java'
+}
+
+dependencies {
+  // Reactor types may appear in some domain contracts.
+  implementation 'io.projectreactor:reactor-core'
+  // Bean Validation annotations live on the request DTOs (no Spring needed, just the API).
+  implementation 'jakarta.validation:jakarta.validation-api'
+  implementation 'io.swagger.core.v3:swagger-annotations-jakarta:2.2.25'
+}

@@ -1,0 +1,19 @@
+// ─────────────────────────────────────────────
+// Module name: usecase
+// Layer: Domain / Use Case
+// Responsibility:
+//  - Application business rules (reactive, Mono/Flux)
+//  - Orchestrates domain logic
+//  - Depends on model and outbound gateway ports only
+// ─────────────────────────────────────────────
+
+plugins {
+  id 'java'
+}
+
+dependencies {
+  implementation project(':model')
+  // Brings Reactor plus the Spring stereotypes (@Service, @Component, @ConfigurationProperties,
+  // @Transactional) the use-case layer is wired with.
+  implementation 'org.springframework.boot:spring-boot-starter-data-r2dbc'
+}

@@ -1,0 +1,35 @@
+// ─────────────────────────────────────────────
+// Multi-module Clean Architecture (Bancolombia scaffold style)
+// Project: multiples_soluciones_para_el_agro
+// Microservice: ms-security
+// ─────────────────────────────────────────────
+plugins {
+    // Lets Gradle auto-download the Java 25 toolchain when it is not installed locally.
+    id 'org.gradle.toolchains.foojay-resolver-convention' version '1.0.0'
+}
+
+rootProject.name = 'ms-security'
+
+include ':app-service'
+project(':app-service').projectDir = file('./applications/app-service')
+
+include ':model'
+project(':model').projectDir = file('./domain/model')
+
+include ':usecase'
+project(':usecase').projectDir = file('./domain/usecase')
+
+include ':utility'
+project(':utility').projectDir = file('./infrastructure/helpers/utility')
+
+include ':reactive-web'
+project(':reactive-web').projectDir = file('./infrastructure/entry-points/reactive-web')
+
+include ':configuration'
+project(':configuration').projectDir = file('./infrastructure/configuration')
+
+include ':security-db'
+project(':security-db').projectDir = file('./infrastructure/driven-adapters/security-db')
+
+include ':security-jwt'
+project(':security-jwt').projectDir = file('./infrastructure/driven-adapters/security-jwt')

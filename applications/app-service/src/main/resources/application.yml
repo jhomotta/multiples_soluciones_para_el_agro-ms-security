@@ -1,0 +1,84 @@
+# ms-security — reactive security microservice (WebFlux + R2DBC PostgreSQL).
+#
+# Every secret and host comes from the environment. Never put a real credential in this file.
+# See .env.example for the variables it expects.
+
+spring:
+  application:
+    name: ms-security
+
+  # Runtime queries go over R2DBC.
+  r2dbc:
+    url: ${R2DBC_URL}              # e.g. r2dbc:postgresql://localhost:5432/security_db
+    username: ${DB_USERNAME}
+    password: ${DB_PASSWORD}
+    pool:
+      enabled: true
+      initial-size: 5
+      max-size: 20
+      max-idle-time: 30m
+
+  # Spring Boot's Flyway auto-configuration stays off: migrations run through our own
+  # JDBC-based Flyway bean (FlywayConfig), because R2DBC cannot run them.
+  flyway:
+    enabled: false
+
+  codec:
+    max-in-memory-size: 256KB
+
+# Flyway (JDBC) settings read by FlywayConfig at start-up.
+app:
+  flyway:
+    url: ${DB_JDBC_URL}            # e.g. jdbc:postgresql://localhost:5432/security_db
+    user: ${DB_USERNAME}
+    password: ${DB_PASSWORD}
+    locations: classpath:db/migration
+    baseline-on-migrate: ${FLYWAY_BASELINE_ON_MIGRATE:false}
+  cors:
+    # Comma-separated list. Narrow this in every environment that is not local.
+    allowed-origins: ${CORS_ALLOWED_ORIGINS:*}
+
+security:
+  jwt:
+    secret: ${JWT_SECRET}
+    issuer: ${JWT_ISSUER:ms-security}
+    access-token-minutes: ${JWT_ACCESS_TOKEN_MINUTES:15}
+    refresh-token-days: ${JWT_REFRESH_TOKEN_DAYS:7}
+
+  policy:
+    max-failed-attempts: ${MAX_FAILED_ATTEMPTS:5}
+    lock-minutes: ${LOCK_MINUTES:15}
+    password-reset-minutes: ${PASSWORD_RESET_MINUTES:30}
+    # Local testing only: echoes the raw reset token in the API response.
+    expose-reset-token: ${EXPOSE_RESET_TOKEN:false}
+    default-role-code: ${DEFAULT_ROLE_CODE:USER}
+    require-password-change-on-register: ${REQUIRE_PASSWORD_CHANGE_ON_REGISTER:false}
+
+  # First-start administrator. Turn this off once the account exists.
+  bootstrap:
+    enabled: ${BOOTSTRAP_ADMIN_ENABLED:false}
+    application-code: ${BOOTSTRAP_APPLICATION_CODE:AGRO_CORE}
+    role-code: ${BOOTSTRAP_ROLE_CODE:ADMIN}
+    username: ${BOOTSTRAP_ADMIN_USERNAME:admin}
+    password: ${BOOTSTRAP_ADMIN_PASSWORD:}
+    email: ${BOOTSTRAP_ADMIN_EMAIL:admin@msagro.local}
+    must-change-password: ${BOOTSTRAP_MUST_CHANGE_PASSWORD:false}
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info
+  endpoint:
+    health:
+      show-details: never
+
+server:
+  port: ${SERVER_PORT:8080}
+
+openapi:
+  server-url: ${OPENAPI_SERVER_URL:}
+
+logging:
+  level:
+    com.msagro.security: ${LOG_LEVEL:INFO}

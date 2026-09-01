@@ -1,0 +1,27 @@
+# Local PostgreSQL for ms-security. Works with `podman compose` and `docker compose`.
+#
+#   podman compose up -d
+#   source .env && ./gradlew :app-service:bootRun
+#
+# The credentials here are local-development values and match .env.example. They are not
+# secrets and must not be reused anywhere else.
+services:
+  postgres:
+    image: docker.io/library/postgres:16-alpine
+    container_name: ms-security-db
+    environment:
+      POSTGRES_DB: security_db
+      POSTGRES_USER: msagro
+      POSTGRES_PASSWORD: msagro_local
+    ports:
+      - "5432:5432"
+    volumes:
+      - ms-security-pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U msagro -d security_db"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+volumes:
+  ms-security-pgdata:

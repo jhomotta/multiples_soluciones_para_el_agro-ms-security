@@ -1,0 +1,26 @@
+// ─────────────────────────────────────────────
+// Module name: configuration
+// Layer: Infrastructure / Configuration
+// Responsibility:
+//  - Bean wiring and dependency injection
+//  - Reactive Spring Security filter chain + JWT web filter
+//  - CORS and OpenAPI configuration
+// ─────────────────────────────────────────────
+
+plugins {
+  id 'java'
+}
+
+dependencies {
+  implementation project(':model')
+  implementation project(':usecase')
+  implementation project(':reactive-web')
+  implementation project(':security-db')
+  implementation project(':security-jwt')
+  implementation project(':utility')
+
+  implementation 'org.springframework.boot:spring-boot-starter-webflux'
+  implementation 'org.springframework.boot:spring-boot-starter-security'
+  implementation "io.jsonwebtoken:jjwt-api:${versions.jjwt}"
+  implementation "org.springdoc:springdoc-openapi-starter-webflux-ui:${versions.springdoc}"
+}

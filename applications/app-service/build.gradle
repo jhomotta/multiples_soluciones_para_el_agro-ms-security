@@ -1,0 +1,22 @@
+// ─────────────────────────────────────────────
+// Module name: app-service
+// Layer: Application (Boot)
+// Responsibility:
+//  - Spring Boot entry point (the only runnable module)
+//  - Assembles all modules and loads configuration
+//  - Produces the executable JAR
+// ─────────────────────────────────────────────
+
+dependencies {
+  implementation project(':model')
+  implementation project(':usecase')
+  implementation project(':reactive-web')
+  implementation project(':security-db')
+  implementation project(':security-jwt')
+  implementation project(':configuration')
+  implementation project(':utility')
+
+  implementation 'org.springframework.boot:spring-boot-starter-webflux'
+  implementation 'org.springframework.boot:spring-boot-starter-actuator'
+  developmentOnly 'org.springframework.boot:spring-boot-devtools'
+}
