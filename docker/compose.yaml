@@ -1,10 +1,18 @@
 # Local PostgreSQL for ms-security. Works with `podman compose` and `docker compose`.
 #
-#   podman compose up -d
-#   source .env && ./gradlew :app-service:bootRun
+#   cd docker && podman compose up -d
+#   source ../.env && ./gradlew :app-service:bootRun
+#
+# Or, from the project root:
+#   podman compose -f docker/compose.yaml up -d
 #
 # The credentials here are local-development values and match .env.example. They are not
 # secrets and must not be reused anywhere else.
+
+# Fixed project name: without it, compose would derive one from this directory ("docker")
+# and prefix the container and volume names with it.
+name: ms-security
+
 services:
   postgres:
     image: docker.io/library/postgres:16-alpine
@@ -25,3 +33,6 @@ services:
 
 volumes:
   ms-security-pgdata:
+    # Explicit name, so the volume is the same one whether it is created by compose or by
+    # a plain `podman run` (see docker/README.md).
+    name: ms-security-pgdata

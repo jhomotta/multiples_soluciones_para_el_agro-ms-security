@@ -71,10 +71,11 @@ logs/
 *.log.*
 
 # --- Containers / local data ---
-# Podman/Docker volumes are named in compose.yaml, but keep stray bind mounts out.
+# Podman/Docker volumes are named in docker/compose.yaml, but keep stray bind mounts out.
 pgdata/
 data/
 .docker/
+docker/compose.override.yaml
 docker-compose.override.yml
 compose.override.yaml
 

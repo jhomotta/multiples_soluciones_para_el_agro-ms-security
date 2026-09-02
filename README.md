@@ -82,7 +82,7 @@ Generate a JWT secret with `openssl rand -base64 48`.
 
 ```bash
 # 1. A local PostgreSQL
-podman compose up -d          # or: docker compose up -d   (see compose.yaml)
+podman compose -f docker/compose.yaml up -d    # no compose provider? ./docker/postgres.sh up
 
 # 2. Environment
 cp .env.example .env && $EDITOR .env && source .env

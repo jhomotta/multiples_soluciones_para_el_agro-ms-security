@@ -333,7 +333,9 @@ Stated plainly, and listed in `docs/ARCHITECTURE.md` §11.
 | `docs/API_EXAMPLES.md` | The five examples with real output |
 | `docs/examples.sh` | Runnable version of all five |
 | `docs/BUILD_SUMMARY.md` | This document |
-| `compose.yaml` | Local PostgreSQL on the documented port 5432 |
+| `docker/compose.yaml` | Local PostgreSQL on the documented port 5432 |
+| `docker/postgres.sh` | Same container without a compose provider |
+| `docker/README.md` | How to bring the local database up, either way |
 | `.env.example` | Every environment variable, with none of the values |
 
 ---
@@ -344,7 +346,7 @@ Stated plainly, and listed in `docs/ARCHITECTURE.md` §11.
 cd /external/work/personal_projects/multiples_soluciones_para_el_agro/ms-security
 
 # 1. PostgreSQL
-podman compose up -d              # or: docker compose up -d
+podman compose -f docker/compose.yaml up -d   # or: ./docker/postgres.sh up
 
 # 2. Environment
 cp .env.example .env && $EDITOR .env && source .env
@@ -365,4 +367,4 @@ export EXPOSE_RESET_TOKEN=true    # local only — example 5 needs to read the r
 Turn `BOOTSTRAP_ADMIN_ENABLED` back off once the administrator exists.
 
 > The ad-hoc PostgreSQL container used during development was removed at the end of the session: it
-> ran on port 5433 and would have contradicted the documented 5432 in `compose.yaml`.
+> ran on port 5433 and would have contradicted the documented 5432 in `docker/compose.yaml`.
