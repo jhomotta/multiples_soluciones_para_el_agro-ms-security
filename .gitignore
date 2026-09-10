@@ -133,3 +133,6 @@ $RECYCLE.BIN/
 # Spring Boot reads ./config/application.yml from the working directory and it wins over
 # the packaged one. Local-only values live there; never commit it.
 config/
+
+# Report produced by docs/login-seed-users.sh
+docs/login-seed-users.out.txt
