@@ -12,6 +12,14 @@
 # Every login is expected to succeed except usuario.desactivado, whose security_user row is
 # seeded with enabled = FALSE. The script exits non-zero when reality and that expectation
 # disagree. Requires curl and python3.
+
+# The script uses arrays and [[ ]]. On distributions where /bin/sh is dash, `sh script.sh`
+# would die on the first of them, so re-run under bash instead of failing halfway.
+if [ -z "${BASH_VERSION:-}" ]; then
+  command -v bash >/dev/null 2>&1 || { echo "This script needs bash." >&2; exit 2; }
+  exec bash "$0" "$@"
+fi
+
 set -uo pipefail
 
 BASE="${BASE:-http://localhost:8080}"
@@ -19,11 +27,17 @@ SEED_PASSWORD="${SEED_PASSWORD:-Cambiar-2026-Seguro!}"
 APPLICATION_CODE="${APPLICATION_CODE:-APP_GESTION}"
 OUT="${OUT:-$(dirname "$0")/login-seed-users.out.txt}"
 
-# Container holding the local database, used only to resolve the application id. Set
-# APPLICATION_ID directly to skip the lookup entirely — useful against a remote deployment.
+# Resolving the application id needs the database, because no public endpoint lists
+# applications: reading them requires a token, and getting a token requires the very id we are
+# looking for. So the lookup is a convenience, never a requirement — set APPLICATION_ID to skip
+# it, which is what you want when the script runs away from the database host.
 DB_CONTAINER="${DB_CONTAINER:-ms-security-db}"
 DB_NAME="${DB_NAME:-security_db}"
 DB_USER="${DB_USER:-msagro}"
+
+# Used when the database cannot be reached. APP_GESTION is the third application inserted:
+# AGRO_CORE and AGRO_FIELD come from V17, APP_GESTION from V18.
+DEFAULT_APPLICATION_ID="${DEFAULT_APPLICATION_ID:-3}"
 
 # username:expected-http-status. The seed grants all eight users access to APP_GESTION;
 # only the deactivated account is refused, and the refusal is the generic 401 the endpoint
@@ -41,8 +55,8 @@ USERS=(
 
 # ── Application id ───────────────────────────
 # The login body carries an id, not a code, and the id depends on how many applications
-# earlier migrations inserted. Resolving it beats hardcoding a number that a new V-file
-# would silently invalidate.
+# earlier migrations inserted. Reading it from the database beats hardcoding a number that a
+# new V-file would silently invalidate — where the database is reachable.
 resolve_application_id() {
   local engine=""
   for candidate in docker podman; do
@@ -54,11 +68,16 @@ resolve_application_id() {
       -c "SELECT id FROM application WHERE code = '$APPLICATION_CODE';" 2>/dev/null
 }
 
-APPLICATION_ID="${APPLICATION_ID:-$(resolve_application_id)}"
+APPLICATION_ID_SOURCE="the APPLICATION_ID variable"
+if [ -z "${APPLICATION_ID:-}" ]; then
+  APPLICATION_ID="$(resolve_application_id)"
+  APPLICATION_ID_SOURCE="a lookup in $DB_CONTAINER"
+fi
 if ! [[ "$APPLICATION_ID" =~ ^[0-9]+$ ]]; then
-  echo "Could not resolve the id of $APPLICATION_CODE." >&2
-  echo "Start the database ($DB_CONTAINER) or export APPLICATION_ID=<id>." >&2
-  exit 2
+  APPLICATION_ID="$DEFAULT_APPLICATION_ID"
+  APPLICATION_ID_SOURCE="the built-in default"
+  echo "Note: could not read the id of $APPLICATION_CODE from $DB_CONTAINER; using $APPLICATION_ID." >&2
+  echo "      Export APPLICATION_ID=<id> if that is the wrong one." >&2
 fi
 
 # ── Report ───────────────────────────────────
@@ -67,12 +86,14 @@ log() { printf '%s\n' "$*" >> "$OUT"; }
 rule() { log "────────────────────────────────────────────────────────────────────────"; }
 
 log "Login of the V18 reference users of $APPLICATION_CODE (application id $APPLICATION_ID)"
+log "Id taken from: $APPLICATION_ID_SOURCE"
 log "Host: $BASE"
 log "Date: $(date --iso-8601=seconds)"
 rule
 
 passed=0
 failed=0
+logged_in=0
 
 for entry in "${USERS[@]}"; do
   username="${entry%%:*}"
@@ -134,6 +155,8 @@ print("authorities: " + ", ".join(claims.get("authorities", [])))
 print("mustChangePassword:", answer.get("mustChangePassword"))' 2>/dev/null | sed 's/^/    /' >> "$OUT"
   fi
 
+  [ "$code" = "200" ] && logged_in=$((logged_in + 1))
+
   log ""
   if [ "$code" = "$expected" ]; then
     log "  VERDICT: OK (expected HTTP $expected)"
@@ -150,5 +173,18 @@ done
 log ""
 log "Summary: $passed as expected, $failed unexpected, of ${#USERS[@]} users."
 printf '\nReport written to %s (%s as expected, %s unexpected).\n' "$OUT" "$passed" "$failed"
+
+# A wrong application id fails every user identically, because a login without an access grant
+# is refused with the same generic 401 as a wrong password. Say so, rather than leaving the
+# reader to suspect the credentials.
+# Counted on successful logins, not on matched expectations: usuario.desactivado is expected to
+# be refused, so it passes under a wrong application id too and would mask the problem.
+if [ "$logged_in" -eq 0 ]; then
+  hint="Every login failed. The application id ($APPLICATION_ID, from $APPLICATION_ID_SOURCE) may be wrong,"
+  printf '\n%s\n' "$hint" >&2
+  printf 'or the seed password does not match the hashes in the database.\n' >&2
+  log ""
+  log "$hint or the seed password does not match the hashes in the database."
+fi
 
 [ "$failed" -eq 0 ]
