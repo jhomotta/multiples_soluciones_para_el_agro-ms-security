@@ -128,3 +128,8 @@ $RECYCLE.BIN/
 *.tmp
 *.orig
 *.rej
+
+# --- Local runtime overrides ---
+# Spring Boot reads ./config/application.yml from the working directory and it wins over
+# the packaged one. Local-only values live there; never commit it.
+config/

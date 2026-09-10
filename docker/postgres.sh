@@ -53,6 +53,7 @@ case "${1:-up}" in
       "$ENGINE" volume create "$VOLUME" >/dev/null 2>&1 || true
       "$ENGINE" run -d \
         --name "$CONTAINER" \
+        --restart unless-stopped \
         -e POSTGRES_DB="$DB" \
         -e POSTGRES_USER="$USER_NAME" \
         -e POSTGRES_PASSWORD="$PASSWORD" \

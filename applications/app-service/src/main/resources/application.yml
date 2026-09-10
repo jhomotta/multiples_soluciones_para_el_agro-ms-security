@@ -1,7 +1,10 @@
 # ms-security — reactive security microservice (WebFlux + R2DBC PostgreSQL).
 #
-# Every secret and host comes from the environment. Never put a real credential in this file.
-# See .env.example for the variables it expects.
+# Every value below can be overridden from the environment. The defaults are the local
+# development values from .env.example and docker/compose.yaml, so the service starts with
+# no environment set. They are local-only, and an environment variable always wins over
+# them: in every deployed environment, set the variables. A real credential never belongs
+# in this file. See .env.example for the full list.
 
 spring:
   application:
@@ -9,9 +12,9 @@ spring:
 
   # Runtime queries go over R2DBC.
   r2dbc:
-    url: ${R2DBC_URL}              # e.g. r2dbc:postgresql://localhost:5432/security_db
-    username: ${DB_USERNAME}
-    password: ${DB_PASSWORD}
+    url: ${R2DBC_URL:r2dbc:postgresql://localhost:5432/security_db}
+    username: ${DB_USERNAME:msagro}
+    password: ${DB_PASSWORD:msagro_local}
     pool:
       enabled: true
       initial-size: 5
@@ -29,9 +32,9 @@ spring:
 # Flyway (JDBC) settings read by FlywayConfig at start-up.
 app:
   flyway:
-    url: ${DB_JDBC_URL}            # e.g. jdbc:postgresql://localhost:5432/security_db
-    user: ${DB_USERNAME}
-    password: ${DB_PASSWORD}
+    url: ${DB_JDBC_URL:jdbc:postgresql://localhost:5432/security_db}
+    user: ${DB_USERNAME:msagro}
+    password: ${DB_PASSWORD:msagro_local}
     locations: classpath:db/migration
     baseline-on-migrate: ${FLYWAY_BASELINE_ON_MIGRATE:false}
   cors:

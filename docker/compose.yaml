@@ -17,6 +17,8 @@ services:
   postgres:
     image: docker.io/library/postgres:16-alpine
     container_name: ms-security-db
+    # Keep the database up across reboots and crashes; an explicit `down`/`stop` still wins.
+    restart: unless-stopped
     environment:
       POSTGRES_DB: security_db
       POSTGRES_USER: msagro
