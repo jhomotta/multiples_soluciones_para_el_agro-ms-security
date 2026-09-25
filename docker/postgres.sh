@@ -18,6 +18,8 @@ DB="security_db"
 USER_NAME="msagro"
 PASSWORD="msagro_local"
 PORT="5432"
+# Runs only on an empty volume; it creates msa_operaciones next to security_db.
+INITDB="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/initdb"
 
 ENGINE="${CONTAINER_ENGINE:-}"
 if [ -z "$ENGINE" ]; then
@@ -59,6 +61,7 @@ case "${1:-up}" in
         -e POSTGRES_PASSWORD="$PASSWORD" \
         -p "${PORT}:5432" \
         -v "${VOLUME}:/var/lib/postgresql/data" \
+        -v "${INITDB}:/docker-entrypoint-initdb.d:ro,Z" \
         --health-cmd "pg_isready -U $USER_NAME -d $DB" \
         --health-interval 5s \
         --health-timeout 5s \
@@ -71,7 +74,8 @@ case "${1:-up}" in
   start)  "$ENGINE" start "$CONTAINER" >/dev/null && wait_healthy ;;
   status) "$ENGINE" ps -a --filter "name=^${CONTAINER}$" ;;
   logs)   "$ENGINE" logs -f "$CONTAINER" ;;
-  psql)   "$ENGINE" exec -it "$CONTAINER" psql -U "$USER_NAME" -d "$DB" ;;
+  # Second argument picks the database, so: ./postgres.sh psql msa_operaciones
+  psql)   "$ENGINE" exec -it "$CONTAINER" psql -U "$USER_NAME" -d "${2:-$DB}" ;;
   destroy)
     read -r -p "Remove $CONTAINER and volume $VOLUME? All local data is lost. [y/N] " reply
     case "$reply" in

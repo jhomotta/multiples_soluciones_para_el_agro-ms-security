@@ -20,6 +20,8 @@ services:
     # Keep the database up across reboots and crashes; an explicit `down`/`stop` still wins.
     restart: unless-stopped
     environment:
+      # The image creates this one itself. Every other database on this instance is created
+      # by initdb/01-create-databases.sh, which runs only on an empty data volume.
       POSTGRES_DB: security_db
       POSTGRES_USER: msagro
       POSTGRES_PASSWORD: msagro_local
@@ -27,6 +29,9 @@ services:
       - "5432:5432"
     volumes:
       - ms-security-pgdata:/var/lib/postgresql/data
+      # Creates msa_operaciones (owner msagro) alongside security_db on first start.
+      # :Z keeps it readable under SELinux, which Podman enforces on bind mounts.
+      - ./initdb:/docker-entrypoint-initdb.d:ro,Z
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U msagro -d security_db"]
       interval: 5s

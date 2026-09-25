@@ -7,18 +7,34 @@ PostgreSQL 16 instance; anything else local (a cache, a mail catcher) belongs he
 | --- | --- |
 | `compose.yaml` | PostgreSQL 16 on port 5432, named volume, healthcheck, `restart: unless-stopped` |
 | `postgres.sh` | Starts the same container with plain `podman`/`docker`, for machines with no compose provider |
+| `initdb/` | Mounted at `/docker-entrypoint-initdb.d`; creates every database other than `security_db` |
 
 The credentials below are local-development values. They match `.env.example`, they are not
 secrets, and they must not be reused anywhere else.
 
 | Setting | Value |
 | --- | --- |
-| Database | `security_db` |
+| Databases | `security_db`, `msa_operaciones` |
 | User | `msagro` |
 | Password | `msagro_local` |
 | Port | `5432` |
 | Container | `ms-security-db` |
 | Volume | `ms-security-pgdata` |
+
+One instance hosts both databases, so both answer on port 5432:
+
+| Database | R2DBC URL | JDBC URL |
+| --- | --- | --- |
+| `security_db` | `r2dbc:postgresql://localhost:5432/security_db` | `jdbc:postgresql://localhost:5432/security_db` |
+| `msa_operaciones` | `r2dbc:postgresql://localhost:5432/msa_operaciones` | `jdbc:postgresql://localhost:5432/msa_operaciones` |
+
+`initdb/01-create-databases.sh` creates `msa_operaciones`, and the postgres image runs that
+directory only while the data directory is empty. On a volume that already holds data the
+script is skipped, so create the database once by hand:
+
+```bash
+docker exec ms-security-db createdb -U msagro -O msagro msa_operaciones
+```
 
 ## With compose
 
