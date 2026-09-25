@@ -16,6 +16,12 @@ public interface UserApplicationRepository extends ReactiveCrudRepository<UserAp
 
     Flux<UserApplicationEntity> findBySecurityUserIdOrderByApplicationIdAsc(Long securityUserId);
 
+    Flux<UserApplicationEntity> findByApplicationIdOrderByIdAsc(Long applicationId);
+
+    @Modifying
+    @Query("UPDATE user_application SET active = TRUE, updated_at = now() WHERE id = :id")
+    Mono<Integer> activate(@Param("id") Long id);
+
     /** Grants are deactivated, never deleted: the audit trail must keep pointing at them. */
     @Modifying
     @Query("UPDATE user_application SET active = FALSE, updated_at = now() WHERE id = :id")

@@ -2,10 +2,12 @@ package com.msagro.security.drivenadapters.securitydb.adapter;
 
 import com.msagro.security.drivenadapters.securitydb.mapper.DateTimeMapper;
 import com.msagro.security.model.refreshtoken.RefreshToken;
+import com.msagro.security.model.session.SessionView;
 import com.msagro.security.usecase.gateway.securitydb.RefreshTokenRepositoryPort;
 import io.r2dbc.spi.Readable;
 import org.springframework.r2dbc.core.DatabaseClient;
 import org.springframework.stereotype.Component;
+import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 import java.time.Instant;
@@ -97,6 +99,43 @@ public class RefreshTokenAdapter implements RefreshTokenRepositoryPort {
                 .bind("tokenFamily", tokenFamily)
                 .bind("when", dateTimeMapper.toOffsetDateTime(when))
                 .fetch().rowsUpdated().then();
+    }
+
+    @Override
+    public Mono<RefreshToken> findById(Long id) {
+        return client.sql(SELECT_COLUMNS + " FROM refresh_token WHERE id = :id")
+                .bind("id", id)
+                .map(this::toModel)
+                .one();
+    }
+
+    /** {@code started_at} is the first token of the family: the login itself. */
+    @Override
+    public Flux<SessionView> findOpenSessions(Long userApplicationId, Instant now) {
+        return client.sql("""
+                        SELECT t.id, t.device_id, t.device_info, host(t.ip_address) AS ip_address,
+                               t.user_agent, t.issued_at, t.expires_at,
+                               (SELECT MIN(f.issued_at) FROM refresh_token f
+                                 WHERE f.token_family = t.token_family) AS started_at
+                          FROM refresh_token t
+                         WHERE t.user_application_id = :userApplicationId
+                           AND t.revoked_at IS NULL
+                           AND t.expires_at > :now
+                         ORDER BY t.issued_at DESC
+                        """)
+                .bind("userApplicationId", userApplicationId)
+                .bind("now", dateTimeMapper.toOffsetDateTime(now))
+                .map(row -> SessionView.builder()
+                        .id(row.get("id", Long.class))
+                        .deviceId(row.get("device_id", String.class))
+                        .deviceInfo(row.get("device_info", String.class))
+                        .ipAddress(row.get("ip_address", String.class))
+                        .userAgent(row.get("user_agent", String.class))
+                        .startedAt(dateTimeMapper.toInstant(row.get("started_at", OffsetDateTime.class)))
+                        .lastActivityAt(dateTimeMapper.toInstant(row.get("issued_at", OffsetDateTime.class)))
+                        .expiresAt(dateTimeMapper.toInstant(row.get("expires_at", OffsetDateTime.class)))
+                        .build())
+                .all();
     }
 
     @Override

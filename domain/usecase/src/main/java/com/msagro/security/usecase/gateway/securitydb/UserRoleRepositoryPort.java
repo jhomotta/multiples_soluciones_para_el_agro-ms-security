@@ -13,6 +13,9 @@ public interface UserRoleRepositoryPort {
 
     Flux<UserRole> findByGrant(Long userApplicationId);
 
+    /** Turns a deactivated assignment on again, with no time window. */
+    Mono<Void> activate(Long userApplicationId, Long roleId);
+
     /** Deactivates one assignment; the row stays for audit purposes. */
     Mono<Void> deactivate(Long userApplicationId, Long roleId);
 

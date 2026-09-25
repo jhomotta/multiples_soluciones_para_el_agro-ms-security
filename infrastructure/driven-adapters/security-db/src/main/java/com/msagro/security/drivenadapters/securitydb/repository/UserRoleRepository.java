@@ -18,6 +18,14 @@ public interface UserRoleRepository extends ReactiveCrudRepository<UserRoleEntit
 
     @Modifying
     @Query("""
+            UPDATE user_role SET active = TRUE, valid_from = NULL, valid_until = NULL
+             WHERE user_application_id = :userApplicationId AND role_id = :roleId
+            """)
+    Mono<Integer> activate(@Param("userApplicationId") Long userApplicationId,
+                           @Param("roleId") Long roleId);
+
+    @Modifying
+    @Query("""
             UPDATE user_role SET active = FALSE
              WHERE user_application_id = :userApplicationId AND role_id = :roleId
             """)

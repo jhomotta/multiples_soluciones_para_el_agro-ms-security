@@ -34,6 +34,12 @@ public interface SecurityUserRepositoryPort {
      */
     Mono<Void> updatePassword(Long userId, String passwordHash, Instant when);
 
+    /**
+     * Sets a password given by an administrator: like {@link #updatePassword} but the user must
+     * change it at the next login.
+     */
+    Mono<Void> setTemporaryPassword(Long userId, String passwordHash, Instant when);
+
     /** Bumps {@code security_stamp} alone (used when roles or state change). */
     Mono<Void> bumpSecurityStamp(Long userId);
 }

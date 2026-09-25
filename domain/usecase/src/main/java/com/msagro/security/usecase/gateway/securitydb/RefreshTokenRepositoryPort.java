@@ -1,6 +1,8 @@
 package com.msagro.security.usecase.gateway.securitydb;
 
 import com.msagro.security.model.refreshtoken.RefreshToken;
+import com.msagro.security.model.session.SessionView;
+import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 import java.time.Instant;
@@ -17,6 +19,14 @@ public interface RefreshTokenRepositoryPort {
 
     /** Revokes every live token of a family — the reuse-detection response. */
     Mono<Void> revokeFamily(String tokenFamily, Instant when);
+
+    Mono<RefreshToken> findById(Long id);
+
+    /**
+     * The open sessions of an access grant: one row per live token (not revoked, not expired at
+     * {@code now}), which is the newest token of its family, newest first.
+     */
+    Flux<SessionView> findOpenSessions(Long userApplicationId, Instant now);
 
     /** Revokes every live token of an access grant (logout of all sessions). */
     Mono<Void> revokeAllForGrant(Long userApplicationId, Instant when);

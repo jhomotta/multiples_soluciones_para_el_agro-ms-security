@@ -36,6 +36,11 @@ public class UserRoleAdapter implements UserRoleRepositoryPort {
     }
 
     @Override
+    public Mono<Void> activate(Long userApplicationId, Long roleId) {
+        return repository.activate(userApplicationId, roleId).then();
+    }
+
+    @Override
     public Mono<Void> deactivate(Long userApplicationId, Long roleId) {
         return repository.deactivate(userApplicationId, roleId).then();
     }

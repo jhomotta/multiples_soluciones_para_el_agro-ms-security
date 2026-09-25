@@ -42,6 +42,16 @@ public class UserApplicationAdapter implements UserApplicationRepositoryPort {
     }
 
     @Override
+    public Flux<UserApplication> findByApplication(Long applicationId) {
+        return repository.findByApplicationIdOrderByIdAsc(applicationId).map(mapper::toModel);
+    }
+
+    @Override
+    public Mono<Void> activate(Long id) {
+        return repository.activate(id).then();
+    }
+
+    @Override
     public Mono<Void> deactivate(Long id) {
         return repository.deactivate(id).then();
     }

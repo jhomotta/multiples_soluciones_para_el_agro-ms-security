@@ -78,6 +78,11 @@ public class SecurityUserAdapter implements SecurityUserRepositoryPort {
     }
 
     @Override
+    public Mono<Void> setTemporaryPassword(Long userId, String passwordHash, Instant when) {
+        return repository.setTemporaryPassword(userId, passwordHash, dateTimeMapper.toOffsetDateTime(when)).then();
+    }
+
+    @Override
     public Mono<Void> bumpSecurityStamp(Long userId) {
         return repository.bumpSecurityStamp(userId).then();
     }

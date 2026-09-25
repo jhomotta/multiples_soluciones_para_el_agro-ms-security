@@ -60,6 +60,25 @@ public interface SecurityUserRepository extends ReactiveCrudRepository<SecurityU
      * Replaces the password and resets everything a password change should reset, bumping
      * {@code security_stamp} so tokens issued before this moment can be recognised as stale.
      */
+    /** Like updatePassword, but the next login must change it (a password given by an admin). */
+    @Modifying
+    @Query("""
+            UPDATE security_user
+               SET password_hash = :passwordHash,
+                   password_changed_at = :when,
+                   must_change_password = TRUE,
+                   credentials_expired = FALSE,
+                   failed_attempts = 0,
+                   locked = FALSE,
+                   locked_until = NULL,
+                   security_stamp = security_stamp + 1,
+                   updated_at = now()
+             WHERE id = :userId
+            """)
+    Mono<Integer> setTemporaryPassword(@Param("userId") Long userId,
+                                       @Param("passwordHash") String passwordHash,
+                                       @Param("when") OffsetDateTime when);
+
     @Modifying
     @Query("""
             UPDATE security_user

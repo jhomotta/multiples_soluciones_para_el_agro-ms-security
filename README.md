@@ -104,6 +104,8 @@ immediately.
 To see the whole thing work at once, run `./docs/examples.sh` against a freshly migrated database.
 It walks the five flows in [`docs/API_EXAMPLES.md`](docs/API_EXAMPLES.md) and prints what each returns.
 
+The sessions and user administration of the APP_GESTION seed (HU-04, HU-05, HU-82) are checked by `BASE=http://localhost:8080 ./docs/test-sessions-and-users.sh`. It writes in the database it points at, so use a local or test one.
+
 ## API
 
 | Method | Path | Auth | Purpose |
@@ -114,9 +116,18 @@ It walks the five flows in [`docs/API_EXAMPLES.md`](docs/API_EXAMPLES.md) and pr
 | POST | `/api/v1/auth/logout` | public | Revoke one token, or every session of the grant |
 | POST | `/api/v1/auth/password-reset/request` | public | Issue a single-use reset token |
 | POST | `/api/v1/auth/password-reset/confirm` | public | Consume it and set the new password |
-| GET | `/api/v1/me` | token | The identity the token carries |
+| GET | `/api/v1/me` | token | The identity the token carries, checked against the database (401 once the user is deactivated, the password reset or the role changed) |
 | GET | `/api/v1/me/access` | token | Every application the caller can reach |
 | POST | `/api/v1/me/change-password` | token | Change own password; revokes every session |
+| GET | `/api/v1/me/sessions` | token | Own open sessions in this application, with their device (HU-04) |
+| POST | `/api/v1/me/sessions/{id}/revoke` | token | Close one own session; body `{reason}` (HU-04) |
+| GET | `/api/v1/admin/roles` | `USER_MANAGE` | Roles of the caller's application |
+| GET/POST | `/api/v1/admin/users` | `USER_MANAGE` | Users of the caller's application; create one with a temporary password and a role (HU-82) |
+| PUT | `/api/v1/admin/users/{id}` | `USER_MANAGE` | Edit names, contact and the one role |
+| POST | `/api/v1/admin/users/{id}/deactivate` · `/activate` | `USER_MANAGE` | Turn the access off (body `{reason}`; closes every session, keeps the history) or on again |
+| POST | `/api/v1/admin/users/{id}/reset-password` | `USER_MANAGE` | Temporary password, to change at the next login; closes every session |
+| GET | `/api/v1/admin/users/{id}/sessions` | `USER_MANAGE` | Open sessions of a user |
+| POST | `/api/v1/admin/users/{id}/sessions/{sid}/revoke` | `USER_MANAGE` | Close a session of a user; body `{reason}` |
 | POST/GET | `/api/v1/companies` | `COMPANY_CREATE` / `COMPANY_READ` | Companies |
 | POST | `/api/v1/applications` | `APPLICATION_CREATE` | Applications |
 | GET | `/api/v1/companies/{id}/applications` | `APPLICATION_READ` | Applications of a company |
